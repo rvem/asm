@@ -46,7 +46,7 @@ size_t word_count(std::string &s) {
     size_t tail = n - (n - ind) % 16 - 16;
     for (size_t i = ind; i < tail; i += 16) {
         __m128i mask = _mm_cmpeq_epi8(_mm_loadu_si128((__m128i *) (a + i)), SPACE_MASK);
-        __m128i shifted_mask = _mm_alignr_epi8(mask, mask, 1);
+        __m128i shifted_mask = _mm_alignr_epi8(mask, mask, 1); //requiers -m64 -mssse3 flags
         __m128i count_mask = _mm_and_si128(_mm_andnot_si128(shifted_mask, mask), ONE_MASK);
         res_mask = _mm_add_epi8(res_mask, count_mask);
     }
