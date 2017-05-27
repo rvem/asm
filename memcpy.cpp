@@ -46,7 +46,7 @@ void *memcpy_16aligned(void *dst, const void *src, size_t n) {
     }
     for (size_t i = offset; i < n - tail; i += 16) {
         __m128i tmp;
-        __asm__ volatile("movdqa\t (%1), %0\n"
+        __asm__ volatile("movdqu\t (%1), %0\n"
                 "movntdq\t %0, (%2)\n"
         :"=x"(tmp)
         :"r"((char *) src + i), "r"((char *) dst + i)
