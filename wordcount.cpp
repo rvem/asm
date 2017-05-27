@@ -51,7 +51,7 @@ size_t word_count(std::string &s) {
         res_mask = _mm_add_epi8(res_mask, count_mask);
     }
     ans += calc_mask(res_mask);
-    is_space = a[ind - 1] != ' ';
+    is_space = a[tail - 1] != ' ';
     for (size_t i = tail; i < n; i++) {
         if (a[i] != ' ' && is_space) {
             ans++;
