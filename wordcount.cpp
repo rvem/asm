@@ -1,6 +1,7 @@
 #include <iostream>
 #include <emmintrin.h>
 #include <tmmintrin.h>
+#include <assert.h>
 
 const __m128i SPACE_MASK = _mm_set_epi8(32, 32, 32, 32, 32, 32, 32, 32,
                                         32, 32, 32, 32, 32, 32, 32, 32);
@@ -8,17 +9,13 @@ const __m128i ONE_MASK = _mm_set_epi8(1, 1, 1, 1, 1, 1, 1, 1,
                                       1, 1, 1, 1, 1, 1, 1, 1);
 
 size_t word_count_naive(std::string &str) {
-    size_t res = 0;
-    bool is_space = str[0] == ' ';
-    for (size_t i = 0; i < str.size(); i++) {
-        if (str[i] != ' ' && is_space) {
-            res++;
-            is_space = false;
-        } else if (str[i] == ' ') {
-            is_space = true;
+    size_t ans = 0;
+    for (size_t i = 0; i < str.size(); ++i) {
+        if (str[i] != ' ' && (i == 0 || str[i - 1] == ' ')) {
+            ans++;
         }
     }
-    return res;
+    return ans;
 }
 
 size_t calc_mask(__m128i mask) {
@@ -35,12 +32,12 @@ size_t word_count(std::string &s) {
     size_t ans = 0;
     size_t ind = 0;
     __m128i res_mask = _mm_setzero_si128();
-    bool is_space = s[0] == ' ';
-    while ((size_t) (a + ind) % 16 != 0) {
-        if (is_space && (*a + ind) != ' ') {
+    bool is_space = true;
+    while (ind == 0 || (size_t) (a + ind) % 16 != 0) {
+        if (!is_space && a[ind] == ' ') {
             ans++;
         }
-        is_space = (*a + ind) == ' ';
+        is_space = a[ind] == ' ';
         ind++;
     }
     size_t tail = n - (n - ind) % 16 - 16;
@@ -50,28 +47,33 @@ size_t word_count(std::string &s) {
 //        __m128i shifted_mask = _mm_alignr_epi8(mask, mask, 1);
         __m128i count_mask = _mm_and_si128(_mm_andnot_si128(shifted_mask, mask), ONE_MASK);
         res_mask = _mm_add_epi8(res_mask, count_mask);
-    }
-    if (a[tail - 1] == ' ' && a[tail] != ' ') {
-        ans--;
-    }
-    ans += calc_mask(res_mask);
+    }ans += calc_mask(res_mask);
     is_space = a[tail - 1] == ' ';
     for (size_t i = tail; i < n; i++) {
-        if (a[i] != ' ' && is_space) {
+        if (a[i] == ' ' && !is_space) {
             ans++;
         }
         is_space = a[i] == ' ';
     }
-    return ans;
+    return ans + !is_space;
+}
+
+
+std::string gen_string(int len) {
+    std::string s;
+    static const char alphanum[] =
+            " abc";
+
+    for (int i = 0; i < len; ++i) {
+        int rand_ind = rand() % (sizeof(alphanum) - 1);
+        s += alphanum[rand_ind];
+    }
+    return s;
 }
 
 int main() {
-    std::string s = "  adsad    asdsa sf s   adsad    asdsa sf s   adsad    "
-            "asdsa sf s          asdsa   as    wwwww wwwwwwwwwwww w"
-            "                                                       "
-            "adsad    asdsa sf s   adsad    asdsa sf s   adsad    \"\n"
-            "            \"asdsa sf s          asdsa   as    wwwww wwwwwwwwwwww w            ";
-    std::cout << word_count_naive(s) << std::endl;
-    std::cout << word_count(s) << std::endl;
-    return 0;
+    for (int t = 0; t < 100; ++t) {
+        std::string s = gen_string(100);
+        assert(word_count_naive(s) == word_count(s));
+    }
 }
