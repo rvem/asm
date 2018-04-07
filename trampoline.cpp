@@ -136,7 +136,7 @@ struct trampoline<R(Args...)> {
 
             //jmp rax
             *(pcode++) = 0xFF;
-            *(pcode++) = 0xE0;
+            *(pcode++) = 0xD0;
         } else {
             //5 int args and 8 sse args in registers
             int size = (int_args - 5 + std::max(0, args<Args...>::SSE - 8)) * 8;
